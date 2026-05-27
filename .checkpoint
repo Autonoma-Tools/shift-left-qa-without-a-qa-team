@@ -1,7 +1,7 @@
 {
   "version": 1,
   "slug": "shift-left-qa-without-a-qa-team",
-  "step": "deps_written",
+  "step": "pushed",
   "completed_specs": [
     "husky-lint-staged-config",
     "sentry-slack-backfill-handler",
@@ -11,5 +11,5 @@
   ],
   "pending_specs": [],
   "created_at": "2026-05-27T16:20:39Z",
-  "updated_at": "2026-05-27T16:22:08Z"
+  "updated_at": "2026-05-27T16:22:17Z"
 }
