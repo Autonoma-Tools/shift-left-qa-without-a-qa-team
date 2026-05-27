@@ -1,0 +1,44 @@
+# autonoma.yaml
+#
+# Companion config for an Autonoma-managed E2E suite on a Next.js app deployed
+# to Vercel. Commit this at the repo root of the app under test.
+version: 1
+
+project:
+  name: shift-left-demo
+  framework: nextjs
+
+# Connect Autonoma to the GitHub repo it should watch.
+repository:
+  provider: github
+  name: Autonoma-Tools/shift-left-demo
+  default_branch: main
+
+# How Autonoma reaches the deployed app for each run. On Vercel, every
+# deployment exposes a unique URL; reference it here so the suite targets the
+# correct preview instead of production.
+environments:
+  preview:
+    # Vercel injects this at build/deploy time for preview deployments.
+    base_url: "https://${VERCEL_URL}"
+  production:
+    base_url: "https://shift-left-demo.example.com"
+
+# Routes the Planner agent should prioritize when generating and maintaining
+# coverage. Ordered by business criticality.
+priority_routes:
+  - path: /
+    name: home
+  - path: /login
+    name: login
+  - path: /dashboard
+    name: dashboard
+  - path: /checkout
+    name: checkout
+
+# When the suite runs. Run on every pull request targeting main.
+triggers:
+  pull_request:
+    target_branches:
+      - main
+    environment: preview

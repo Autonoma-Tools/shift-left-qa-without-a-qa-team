@@ -1,0 +1,31 @@
+{
+  "name": "pre-commit-setup",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "description": "Husky + lint-staged pre-commit gating for a TypeScript web app. Keeps the hook under ~10s by only touching staged files.",
+  "scripts": {
+    "prepare": "husky",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "bash -c 'tsc --noEmit'"
+    ],
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --fix"
+    ],
+    "*.{test,spec}.{js,jsx,ts,tsx}": [
+      "vitest related --run"
+    ]
+  },
+  "devDependencies": {
+    "eslint": "^9.0.0",
+    "husky": "^9.1.0",
+    "lint-staged": "^15.2.0",
+    "typescript": "^5.4.0",
+    "vitest": "^2.0.0"
+  }
+}

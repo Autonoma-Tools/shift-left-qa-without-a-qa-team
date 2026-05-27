@@ -1,0 +1,7 @@
+#!/usr/bin/env sh
+# .husky/pre-commit
+#
+# Runs lint-staged so only staged files are checked. This keeps the hook fast
+# (target: under ~10s) instead of type-checking and testing the whole repo on
+# every commit.
+npx lint-staged

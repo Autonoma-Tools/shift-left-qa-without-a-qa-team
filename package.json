@@ -1,0 +1,21 @@
+{
+  "name": "shift-left-qa-without-a-qa-team",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "description": "Companion code for the Autonoma blog post 'What Shift-Left QA Looks Like on a 3-Person Team'.",
+  "type": "commonjs",
+  "scripts": {
+    "start:handler": "ts-node sentry-backfill/handler.ts"
+  },
+  "dependencies": {
+    "@sentry/node": "^8.0.0",
+    "express": "^4.19.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.0.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.0"
+  }
+}

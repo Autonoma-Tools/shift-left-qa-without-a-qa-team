@@ -1,0 +1,77 @@
+# .github/workflows/neon-preview-branch.yml
+#
+# Per-PR isolated database for Vercel preview deployments.
+#
+# On PR open/update: create a Neon branch named after the PR, capture its
+# connection string, and push it to Vercel as PREVIEW_DATABASE_URL so the E2E
+# suite runs against a structurally accurate, isolated database.
+# On PR close: tear the branch down.
+name: Neon Preview Branch
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+
+env:
+  NEON_BRANCH_NAME: pr-${{ github.event.pull_request.number }}
+
+jobs:
+  create-branch:
+    if: github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Neon CLI
+        run: npm install -g neonctl
+
+      - name: Create or reuse Neon branch
+        id: neon
+        env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+          NEON_PROJECT_ID: ${{ secrets.NEON_PROJECT_ID }}
+        run: |
+          set -euo pipefail
+          # Create the branch if it does not already exist (idempotent on synchronize).
+          if ! neonctl branches get "$NEON_BRANCH_NAME" \
+                --project-id "$NEON_PROJECT_ID" >/dev/null 2>&1; then
+            neonctl branches create \
+              --project-id "$NEON_PROJECT_ID" \
+              --name "$NEON_BRANCH_NAME"
+          fi
+
+          CONN_STRING=$(neonctl connection-string "$NEON_BRANCH_NAME" \
+            --project-id "$NEON_PROJECT_ID" \
+            --pooled)
+          echo "::add-mask::$CONN_STRING"
+          echo "conn_string=$CONN_STRING" >> "$GITHUB_OUTPUT"
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel
+
+      - name: Set PREVIEW_DATABASE_URL on Vercel preview
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          CONN_STRING: ${{ steps.neon.outputs.conn_string }}
+        run: |
+          set -euo pipefail
+          # Remove any stale value, then add the fresh one for the preview env.
+          vercel env rm PREVIEW_DATABASE_URL preview --yes --token "$VERCEL_TOKEN" || true
+          printf '%s' "$CONN_STRING" | \
+            vercel env add PREVIEW_DATABASE_URL preview --token "$VERCEL_TOKEN"
+
+  delete-branch:
+    if: github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Neon CLI
+        run: npm install -g neonctl
+
+      - name: Delete Neon branch
+        env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+          NEON_PROJECT_ID: ${{ secrets.NEON_PROJECT_ID }}
+        run: |
+          set -euo pipefail
+          neonctl branches delete "$NEON_BRANCH_NAME" \
+            --project-id "$NEON_PROJECT_ID" || true
